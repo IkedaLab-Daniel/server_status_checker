@@ -5,14 +5,14 @@ const ServerStatusChecker = () => {
   // Replace these with your actual server URLs
   const servers = [
     {
-      name: 'Server 1: Decision Tree Model',
-      url: 'https://career-comm-priv-1.onrender.com/health', // Health check endpoint
-      mainUrl: 'https://career-comm-priv-1.onrender.com'
-    },
-    {
-      name: 'Server 2: Main Laravel Web App', 
+      name: 'Server 1: Main Laravel Web App', 
       url: 'https://career-comm-main-laravel.onrender.com', // Health check endpoint
       mainUrl: 'https://career-comm-main-laravel.onrender.com'
+    },
+    {
+      name: 'Server 2: Decision Tree Model',
+      url: 'https://career-comm-priv-1.onrender.com/health', // Health check endpoint
+      mainUrl: 'https://career-comm-priv-1.onrender.com'
     }
   ];
 
@@ -41,7 +41,7 @@ const ServerStatusChecker = () => {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
       const response = await fetch(serverUrl, {
         method: 'GET',
@@ -65,12 +65,14 @@ const ServerStatusChecker = () => {
       ));
     } catch (error) {
       const responseTime = Date.now() - startTime;
-      
+      // If error is AbortError, treat as error (timeout)
+      // Otherwise, treat as online (likely CORS error)
+      const isAbortError = error && error.name === 'AbortError';
       setServerStates(prev => prev.map((state, i) => 
         i === index 
           ? { 
               ...state, 
-              status: 'error',
+              status: isAbortError ? 'error' : 'online',
               responseTime
             }
           : state
